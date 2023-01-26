@@ -4,6 +4,7 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:planer/services/notification_service.dart';
 import '../controllers/task_controller.dart';
 import '../models/task.dart';
 import '../services/theme_service.dart';
@@ -35,9 +36,9 @@ class _PlansViewState extends State<PlansView> {
   @override
   void initState() {
     super.initState();
-    _taskController.getTasks();
     setState(() {
-      status = ThemeService().loadThemeFromBox();
+      status = Get.isDarkMode;
+      _taskController.getTasks();
     });
   }
 
@@ -131,7 +132,7 @@ class _PlansViewState extends State<PlansView> {
               },
             ),
           ),
-          click == 0 ? _showTasks() : _showSchedule(),
+          click == 0 ? _showTasks() : _testNoti(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -156,10 +157,10 @@ class _PlansViewState extends State<PlansView> {
     return AppBar(
       elevation: 0,
       leading: GestureDetector(
-        onTap: () async {
+        onTap: () {
           ThemeService().switchTheme();
           setState(() {
-            status = ThemeService().loadThemeFromBox();
+            status = !Get.isDarkMode;
           });
         },
         child: Icon(status ? Icons.wb_sunny_rounded : Icons.nightlight_rounded,
@@ -192,8 +193,9 @@ class _PlansViewState extends State<PlansView> {
               Task task = _taskController.taskList[index];
               DateTime time = DateFormat.jm().parse(task.startTime.toString());
               DateTime date = DateFormat.yMd().parse(task.date.toString());
-              var myTime = DateFormat("HH:mm").format(time);
-              var myDate = DateFormat("y-M-d").format(date);
+              var myTime = DateFormat.Hm().format(time);
+              var myDate = DateFormat.yMd().format(date);
+
               if (task.repeat == 'Daily') {
                 return AnimationConfiguration.staggeredList(
                   position: index,
@@ -252,7 +254,6 @@ class _PlansViewState extends State<PlansView> {
                   ),
                 );
               }
-
               if (date == _selectedDate) {
                 return AnimationConfiguration.staggeredList(
                   position: index,
@@ -310,6 +311,7 @@ class _PlansViewState extends State<PlansView> {
                     label: "Mark as Completed",
                     onTap: () {
                       _taskController.updateTask(task.id!);
+                      NotificationService().cancelNotification(task.id!);
                       Get.back();
                     },
                     color: Themes.primaryClr,
@@ -319,6 +321,7 @@ class _PlansViewState extends State<PlansView> {
               label: "Delete Task",
               onTap: () {
                 _taskController.deleteTask(task);
+                NotificationService().cancelNotification(task.id!);
                 Get.back();
               },
               color: Colors.red[400]!,
@@ -388,5 +391,20 @@ class _PlansViewState extends State<PlansView> {
 
   _showSchedule() {
     return Container();
+  }
+
+  _testNoti() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: MyButton(
+        label: "test",
+        onTap: () {
+          NotificationService().showNotification(
+            title: "test",
+            body: "test test",
+          );
+        },
+      ),
+    );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:planer/services/notification_service.dart';
 import '../controllers/task_controller.dart';
 import '../models/task.dart';
 import '../ui/theme.dart';
@@ -28,6 +29,12 @@ class _AddTaskViewState extends State<AddTaskView> {
   String _selectedRepeat = "Never";
   List<String> repeatList = ["Never", "Daily", "Weekly", "Monthly"];
   int _selectedColor = 0;
+
+  @override
+  void initState() {
+    NotificationService().init();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -387,19 +394,40 @@ class _AddTaskViewState extends State<AddTaskView> {
   }
 
   _addTaskToDb() async {
-    int value = await _taskController.addTask(
-      task: Task(
-        title: _titleController.text.toString(),
-        note: _noteController.text.toString(),
-        date: DateFormat.yMd().format(_selectedDate),
-        startTime: _startTime,
-        endTime: _endTime,
-        color: _selectedColor,
-        repeat: _selectedRepeat,
-        reminde: _selectedRemind,
-        isCompleted: 0,
-      ),
+    try {
+      int value = await _taskController.addTask(
+        task: Task(
+          title: _titleController.text.toString(),
+          note: _noteController.text.toString(),
+          date: DateFormat.yMd().format(_selectedDate),
+          startTime: _startTime,
+          endTime: _endTime,
+          color: _selectedColor,
+          repeat: _selectedRepeat,
+          reminde: _selectedRemind,
+          isCompleted: 0,
+        ),
+      );
+      _setNoltification(value);
+      print("my id is $value");
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  _setNoltification(int value) async {
+    DateTime time = DateFormat.jm().parse(_startTime.toString());
+    if (_selectedRepeat == "Daily") {}
+    await NotificationService().zonedScheduleNotification(
+      title: _titleController.text.toString(),
+      body: _noteController.text.toString(),
+      id: value,
+      year: _selectedDate.year,
+      month: _selectedDate.month,
+      day: _selectedDate.day,
+      hour: time.hour,
+      minutes: time.minute,
+      repeat: _selectedRepeat,
     );
-    print("my id is $value");
   }
 }

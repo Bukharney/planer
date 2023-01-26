@@ -10,8 +10,9 @@ class ThemeService {
   bool loadThemeFromBox() => box.read(key) ?? false;
 
   ThemeMode get theme => loadThemeFromBox() ? ThemeMode.dark : ThemeMode.light;
-  void switchTheme() {
+
+  void switchTheme() async {
     Get.changeThemeMode(loadThemeFromBox() ? ThemeMode.light : ThemeMode.dark);
-    saveThemeToBox(!loadThemeFromBox());
+    await saveThemeToBox(!loadThemeFromBox());
   }
 }
