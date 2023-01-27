@@ -67,12 +67,13 @@ class NotificationService {
     required String title,
     required String body,
     required String repeat,
+    required int reminder,
   }) async {
     await _notificationsPlugin.zonedSchedule(
       id,
       title,
       body,
-      _nextInstanceOfNotification(year, month, day, hour, minutes),
+      _nextInstanceOfNotification(year, month, day, hour, minutes - reminder),
       _notificationDetails(),
       androidAllowWhileIdle: true,
       uiLocalNotificationDateInterpretation:

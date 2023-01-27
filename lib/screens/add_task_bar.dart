@@ -80,8 +80,10 @@ class _AddTaskViewState extends State<AddTaskView> {
                       widget: IconButton(
                         onPressed: () async {
                           await _getTime(true);
-                          _startTime = _selectedTime.format(context);
-                          _isStartTime = _selectedTime;
+                          setState(() {
+                            _startTime = _selectedTime.format(context);
+                            _isStartTime = _selectedTime;
+                          });
                         },
                         icon: const Icon(Icons.access_time_outlined),
                       ),
@@ -95,7 +97,9 @@ class _AddTaskViewState extends State<AddTaskView> {
                       widget: IconButton(
                         onPressed: () async {
                           await _getTime(false);
-                          _endTime = _selectedTime.format(context);
+                          setState(() {
+                            _endTime = _selectedTime.format(context);
+                          });
                         },
                         icon: const Icon(Icons.access_time_outlined),
                       ),
@@ -417,7 +421,6 @@ class _AddTaskViewState extends State<AddTaskView> {
 
   _setNoltification(int value) async {
     DateTime time = DateFormat.jm().parse(_startTime.toString());
-    if (_selectedRepeat == "Daily") {}
     await NotificationService().zonedScheduleNotification(
       title: _titleController.text.toString(),
       body: _noteController.text.toString(),
@@ -428,6 +431,7 @@ class _AddTaskViewState extends State<AddTaskView> {
       hour: time.hour,
       minutes: time.minute,
       repeat: _selectedRepeat,
+      reminder: _selectedRemind,
     );
   }
 }
