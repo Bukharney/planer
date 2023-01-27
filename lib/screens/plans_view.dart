@@ -22,7 +22,8 @@ class PlansView extends StatefulWidget {
 
 class _PlansViewState extends State<PlansView> {
   final TaskController _taskController = Get.put(TaskController());
-  DateTime _selectedDate = DateTime.now();
+  late DateTime _selectedDate;
+  var myFormat = DateFormat('yyyy-MM-dd');
   bool status = true;
 
   int click = 0;
@@ -35,11 +36,12 @@ class _PlansViewState extends State<PlansView> {
 
   @override
   void initState() {
-    super.initState();
+    _taskController.getTasks();
     setState(() {
-      status = Get.isDarkMode;
-      _taskController.getTasks();
+      status = ThemeService().loadThemeFromBox();
+      _selectedDate = DateTime.now();
     });
+    super.initState();
   }
 
   @override
@@ -132,7 +134,9 @@ class _PlansViewState extends State<PlansView> {
               },
             ),
           ),
-          click == 0 ? _showTasks() : _testNoti(),
+          Container(
+            child: _showTasks(),
+          ),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -190,12 +194,10 @@ class _PlansViewState extends State<PlansView> {
           return ListView.builder(
             itemCount: _taskController.taskList.length,
             itemBuilder: (_, index) {
+              print("Item builded");
               Task task = _taskController.taskList[index];
-              DateTime time = DateFormat.jm().parse(task.startTime.toString());
+              print(task.toJson());
               DateTime date = DateFormat.yMd().parse(task.date.toString());
-              var myTime = DateFormat.Hm().format(time);
-              var myDate = DateFormat.yMd().format(date);
-
               if (task.repeat == 'Daily') {
                 return AnimationConfiguration.staggeredList(
                   position: index,
@@ -214,8 +216,7 @@ class _PlansViewState extends State<PlansView> {
                     ),
                   ),
                 );
-              }
-              if (_selectedDate.difference(date).inDays % 7 == 0 &&
+              } else if (_selectedDate.difference(date).inDays % 7 == 0 &&
                   task.repeat == 'Weekly') {
                 return AnimationConfiguration.staggeredList(
                   position: index,
@@ -234,8 +235,8 @@ class _PlansViewState extends State<PlansView> {
                     ),
                   ),
                 );
-              }
-              if (date.day == _selectedDate.day && task.repeat == 'Monthly') {
+              } else if (date.difference(_selectedDate).inDays == 0 &&
+                  task.repeat == 'Monthly') {
                 return AnimationConfiguration.staggeredList(
                   position: index,
                   child: SlideAnimation(
@@ -253,8 +254,8 @@ class _PlansViewState extends State<PlansView> {
                     ),
                   ),
                 );
-              }
-              if (date == _selectedDate) {
+              } else if (date.day == _selectedDate.day &&
+                  task.repeat == 'Never') {
                 return AnimationConfiguration.staggeredList(
                   position: index,
                   child: SlideAnimation(
@@ -273,6 +274,7 @@ class _PlansViewState extends State<PlansView> {
                   ),
                 );
               } else {
+                print('Found nothing');
                 return Container();
               }
             },
