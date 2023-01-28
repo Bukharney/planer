@@ -8,17 +8,17 @@ import '../ui/theme.dart';
 import '../ui/widget/button.dart';
 import '../ui/widget/input_field.dart';
 
-class AddTaskView extends StatefulWidget {
-  const AddTaskView({super.key});
+class AddSheduleView extends StatefulWidget {
+  const AddSheduleView({super.key});
 
   @override
-  State<AddTaskView> createState() => _AddTaskViewState();
+  State<AddSheduleView> createState() => _AddSheduleViewState();
 }
 
-class _AddTaskViewState extends State<AddTaskView> {
-  final TaskController _taskController = Get.put(TaskController());
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _noteController = TextEditingController();
+class _AddSheduleViewState extends State<AddSheduleView> {
+  final ScheduleController _scheduleController = Get.put(ScheduleController());
+  final TextEditingController _subjectController = TextEditingController();
+  final TextEditingController _detaillController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = const TimeOfDay(hour: 8, minute: 30);
   TimeOfDay _isStartTime = const TimeOfDay(hour: 8, minute: 30);
@@ -26,8 +26,16 @@ class _AddTaskViewState extends State<AddTaskView> {
   String _endTime = "12:30 PM";
   int _selectedRemind = 5;
   List<int> remindList = [5, 10, 15, 20, 25, 30];
-  String _selectedRepeat = "Never";
-  List<String> repeatList = ["Never", "Daily", "Weekly", "Monthly"];
+  String _selectedRepeat = "Monday";
+  List<String> dayList = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday"
+  ];
   int _selectedColor = 0;
 
   @override
@@ -47,35 +55,77 @@ class _AddTaskViewState extends State<AddTaskView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Add Task",
+                "Add Schedule",
                 style: headingStyle,
               ),
               const SizedBox(height: 10),
               InputField(
-                title: 'Title',
-                hint: 'Enter your title',
-                controller: _titleController,
+                title: 'Subject',
+                hint: 'Enter your subject',
+                controller: _subjectController,
               ),
               InputField(
-                title: 'Note',
-                hint: 'Enter your note',
-                controller: _noteController,
+                title: 'Detail',
+                hint: 'Enter your detail',
+                controller: _detaillController,
               ),
-              InputField(
-                title: 'Date',
-                hint: DateFormat('dd/MM/yyyy').format(_selectedDate),
-                widget: IconButton(
-                  onPressed: () async {
-                    await _getDate();
-                  },
-                  icon: const Icon(Icons.calendar_today_outlined),
+              Container(
+                margin: const EdgeInsets.only(top: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Day",
+                      style: titleStyle,
+                    ),
+                    Container(
+                      height: 52,
+                      margin: const EdgeInsets.only(top: 8.0),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Colors.grey,
+                          width: 1.0,
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        child: DropdownButtonFormField(
+                          hint: Text(_selectedRepeat),
+                          borderRadius: BorderRadius.circular(10),
+                          icon: const Icon(
+                            Icons.keyboard_arrow_down_outlined,
+                          ),
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            contentPadding:
+                                EdgeInsets.symmetric(horizontal: 20),
+                          ),
+                          items: dayList
+                              .map((e) => DropdownMenuItem(
+                                    value: e,
+                                    child: Text(
+                                      e,
+                                      style: hintStyle,
+                                    ),
+                                  ))
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedRepeat = value as String;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               Row(
                 children: [
                   Expanded(
                     child: InputField(
-                      title: 'Start Time',
+                      title: 'Start',
                       hint: _startTime,
                       widget: IconButton(
                         onPressed: () async {
@@ -92,7 +142,7 @@ class _AddTaskViewState extends State<AddTaskView> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: InputField(
-                      title: 'End Time',
+                      title: 'End',
                       hint: _endTime,
                       widget: IconButton(
                         onPressed: () async {
@@ -159,58 +209,6 @@ class _AddTaskViewState extends State<AddTaskView> {
                   ],
                 ),
               ),
-              Container(
-                margin: const EdgeInsets.only(top: 10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Repeat",
-                      style: titleStyle,
-                    ),
-                    Container(
-                      height: 52,
-                      margin: const EdgeInsets.only(top: 8.0),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Colors.grey,
-                          width: 1.0,
-                        ),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: SizedBox(
-                        width: MediaQuery.of(context).size.width,
-                        child: DropdownButtonFormField(
-                          hint: Text(_selectedRepeat),
-                          borderRadius: BorderRadius.circular(10),
-                          icon: const Icon(
-                            Icons.keyboard_arrow_down_outlined,
-                          ),
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            contentPadding:
-                                EdgeInsets.symmetric(horizontal: 20),
-                          ),
-                          items: repeatList
-                              .map((e) => DropdownMenuItem(
-                                    value: e,
-                                    child: Text(
-                                      e,
-                                      style: hintStyle,
-                                    ),
-                                  ))
-                              .toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedRepeat = value as String;
-                            });
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
               const SizedBox(
                 height: 20,
               ),
@@ -219,7 +217,7 @@ class _AddTaskViewState extends State<AddTaskView> {
                 children: [
                   _colorPallete(),
                   MyButton(
-                    label: "Add Task",
+                    label: "Add Schedule",
                     onTap: () async {
                       await _validate();
                     },
@@ -234,10 +232,12 @@ class _AddTaskViewState extends State<AddTaskView> {
   }
 
   _validate() {
-    if (_titleController.text.isNotEmpty && _noteController.text.isNotEmpty) {
-      _addTaskToDb();
+    if (_subjectController.text.isNotEmpty &&
+        _detaillController.text.isNotEmpty) {
+      _addScheduleToDb();
       Get.back();
-    } else if (_titleController.text.isEmpty || _noteController.text.isEmpty) {
+    } else if (_subjectController.text.isEmpty ||
+        _detaillController.text.isEmpty) {
       Get.snackbar(
         "Required",
         "All fields are required !",
@@ -330,34 +330,6 @@ class _AddTaskViewState extends State<AddTaskView> {
     });
   }
 
-  _getDate() {
-    return showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(2021),
-      lastDate: DateTime(2025),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData(
-            colorScheme: Get.isDarkMode
-                ? const ColorScheme.dark()
-                : const ColorScheme.light(
-                    primary: Themes.primaryClr,
-                  ),
-          ),
-          child: child!,
-        );
-      },
-    ).then((value) {
-      if (value != null) {
-        setState(() {
-          _selectedDate = value;
-          print(_selectedDate);
-        });
-      }
-    });
-  }
-
   _colorPallete() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -397,12 +369,12 @@ class _AddTaskViewState extends State<AddTaskView> {
     );
   }
 
-  _addTaskToDb() async {
+  _addScheduleToDb() async {
     try {
-      int value = await _taskController.addTask(
-        task: Task(
-          title: _titleController.text.toString(),
-          note: _noteController.text.toString(),
+      int value = await _scheduleController.addSchedule(
+        schedule: Schedule(
+          title: _subjectController.text.toString(),
+          note: _detaillController.text.toString(),
           date: DateFormat.yMd().format(_selectedDate),
           startTime: _startTime,
           endTime: _endTime,
@@ -422,8 +394,8 @@ class _AddTaskViewState extends State<AddTaskView> {
   _setNoltification(int value) async {
     DateTime time = DateFormat.jm().parse(_startTime.toString());
     await NotificationService().zonedScheduleNotification(
-      title: _titleController.text.toString(),
-      body: _noteController.text.toString(),
+      title: _subjectController.text.toString(),
+      body: _detaillController.text.toString(),
       id: value,
       year: _selectedDate.year,
       month: _selectedDate.month,

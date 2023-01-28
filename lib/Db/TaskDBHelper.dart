@@ -1,7 +1,7 @@
 import 'package:sqflite/sqflite.dart';
-import '../models/task.dart';
+import '../models/data.dart';
 
-class DBHelper {
+class TaskDBHelper {
   static Database? _db;
   static const int _version = 1;
   static const String _tableName = 'taskDb';

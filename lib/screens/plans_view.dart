@@ -4,9 +4,10 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:planer/screens/add_schedule.dart';
 import 'package:planer/services/notification_service.dart';
-import '../controllers/task_controller.dart';
-import '../models/task.dart';
+import '../controllers/data_controller.dart';
+import '../models/data.dart';
 import '../services/theme_service.dart';
 import '../ui/theme.dart';
 import '../ui/widget/button.dart';
@@ -22,6 +23,7 @@ class PlansView extends StatefulWidget {
 
 class _PlansViewState extends State<PlansView> {
   final TaskController _taskController = Get.put(TaskController());
+  final ScheduleController _scheduleController = Get.put(ScheduleController());
   late DateTime _selectedDate;
   var myFormat = DateFormat('yyyy-MM-dd');
   bool status = true;
@@ -50,14 +52,14 @@ class _PlansViewState extends State<PlansView> {
       appBar: _appBar(),
       body: Column(
         children: [
-          _addTaksBar(),
-          _addDateBar(),
+          // _addTaksBar(),
+          // _addDateBar(),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              const SizedBox(),
               Container(
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                margin: const EdgeInsets.symmetric(vertical: 10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -73,12 +75,16 @@ class _PlansViewState extends State<PlansView> {
                 ),
               ),
               Container(
+                width: 150,
+                padding: const EdgeInsets.all(8.0),
                 margin:
-                    const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                 child: MyButton(
-                  label: "+ Add Task",
+                  label: click == 0 ? "+ Add Task" : "+ Add Schedule",
                   onTap: () async {
-                    await Get.to(() => const AddTaskView());
+                    click == 0
+                        ? await Get.to(() => const AddTaskView())
+                        : await Get.to(() => const AddSheduleView());
                     _taskController.getTasks();
                   },
                 ),
@@ -134,9 +140,7 @@ class _PlansViewState extends State<PlansView> {
               },
             ),
           ),
-          Container(
-            child: _showTasks(),
-          ),
+          click == 0 ? _showTasks() : _showSchedule()
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -284,7 +288,7 @@ class _PlansViewState extends State<PlansView> {
     );
   }
 
-  _showBottomSheet(BuildContext context, Task task) {
+  _showBottomSheet(BuildContext context, task) {
     Get.bottomSheet(
       Container(
         padding: const EdgeInsets.only(top: 5),
@@ -392,7 +396,23 @@ class _PlansViewState extends State<PlansView> {
   }
 
   _showSchedule() {
-    return Container();
+    return Expanded(
+      child: Obx(
+        () {
+          return ListView.builder(
+            itemCount: _taskController.taskList.length,
+            itemBuilder: (_, index) {
+              print("Item builded");
+              Schedule schedule = _scheduleController.scheduleList[index];
+              print(schedule.toJson());
+              return Container(
+                child: Text('Schedule'),
+              );
+            },
+          );
+        },
+      ),
+    );
   }
 
   _testNoti() {

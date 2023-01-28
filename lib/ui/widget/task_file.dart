@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../models/task.dart';
+import '../../models/data.dart';
 
 class TaskTile extends StatelessWidget {
-  final Task? task;
+  final task;
   const TaskTile(this.task, {super.key});
 
   @override
