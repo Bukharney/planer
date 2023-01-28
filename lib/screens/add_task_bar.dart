@@ -370,29 +370,57 @@ class _AddTaskViewState extends State<AddTaskView> {
           height: 12,
         ),
         Wrap(
-            children: List<Widget>.generate(3, (int index) {
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                _selectedColor = index;
-              });
+          children: List<Widget>.generate(
+            6,
+            (int index) {
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedColor = index;
+                  });
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: CircleAvatar(
+                    radius: 14,
+                    backgroundColor: Colors.primaries[index],
+                    child: _selectedColor == index
+                        ? const Icon(
+                            Icons.done,
+                            color: Colors.white,
+                            size: 16,
+                          )
+                        : Container(),
+                  ),
+                ),
+              );
             },
-            child: Padding(
-              padding: const EdgeInsets.only(right: 10),
-              child: CircleAvatar(
-                radius: 14,
-                backgroundColor: Colors.primaries[index],
-                child: _selectedColor == index
-                    ? const Icon(
-                        Icons.done,
-                        color: Colors.white,
-                        size: 16,
-                      )
-                    : Container(),
-              ),
-            ),
-          );
-        }))
+          ),
+        ),
+        // Wrap(
+        //     children: List<Widget>.generate(6, (int index) {
+        //   return GestureDetector(
+        //     onTap: () {
+        //       setState(() {
+        //         _selectedColor = index + 6;
+        //       });
+        //     },
+        //     child: Padding(
+        //       padding: const EdgeInsets.only(right: 10, top: 10),
+        //       child: CircleAvatar(
+        //         radius: 14,
+        //         backgroundColor: Colors.primaries[index + 6],
+        //         child: _selectedColor == index + 6
+        //             ? const Icon(
+        //                 Icons.done,
+        //                 color: Colors.white,
+        //                 size: 16,
+        //               )
+        //             : Container(),
+        //       ),
+        //     ),
+        //   );
+        // }))
       ],
     );
   }
@@ -408,7 +436,7 @@ class _AddTaskViewState extends State<AddTaskView> {
           endTime: _endTime,
           color: _selectedColor,
           repeat: _selectedRepeat,
-          reminde: _selectedRemind,
+          remind: _selectedRemind,
           isCompleted: 0,
         ),
       );

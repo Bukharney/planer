@@ -11,7 +11,8 @@ import '../models/data.dart';
 import '../services/theme_service.dart';
 import '../ui/theme.dart';
 import '../ui/widget/button.dart';
-import '../ui/widget/task_file.dart';
+import '../ui/widget/schedule_tile.dart';
+import '../ui/widget/task_tile.dart';
 import 'add_task_bar.dart';
 
 class PlansView extends StatefulWidget {
@@ -30,15 +31,10 @@ class _PlansViewState extends State<PlansView> {
 
   int click = 0;
 
-  void _onItemTaped(int index) {
-    setState(() {
-      click = index;
-    });
-  }
-
   @override
   void initState() {
     _taskController.getTasks();
+    _scheduleController.getSchedule();
     setState(() {
       status = ThemeService().loadThemeFromBox();
       _selectedDate = DateTime.now();
@@ -156,7 +152,11 @@ class _PlansViewState extends State<PlansView> {
         ],
         elevation: 10,
         currentIndex: click,
-        onTap: _onItemTaped,
+        onTap: (value) {
+          setState(() {
+            click = value;
+          });
+        },
       ),
     );
   }
@@ -198,9 +198,7 @@ class _PlansViewState extends State<PlansView> {
           return ListView.builder(
             itemCount: _taskController.taskList.length,
             itemBuilder: (_, index) {
-              print("Item builded");
               Task task = _taskController.taskList[index];
-              print(task.toJson());
               DateTime date = DateFormat.yMd().parse(task.date.toString());
               if (task.repeat == 'Daily') {
                 return AnimationConfiguration.staggeredList(
@@ -292,7 +290,7 @@ class _PlansViewState extends State<PlansView> {
     Get.bottomSheet(
       Container(
         padding: const EdgeInsets.only(top: 5),
-        height: task.isCompleted == 1
+        height: task.isCompleted == 1 || click == 1
             ? MediaQuery.of(context).size.height * 0.25
             : MediaQuery.of(context).size.height * 0.35,
         color: Get.isDarkMode ? Themes.darkGreyClr : Themes.white,
@@ -310,7 +308,7 @@ class _PlansViewState extends State<PlansView> {
               ),
             ),
             const Spacer(),
-            task.isCompleted == 1
+            task.isCompleted == 1 || click == 1
                 ? Container()
                 : _bottomSheetBotton(
                     context: context,
@@ -400,14 +398,31 @@ class _PlansViewState extends State<PlansView> {
       child: Obx(
         () {
           return ListView.builder(
-            itemCount: _taskController.taskList.length,
+            itemCount: _scheduleController.scheduleList.length,
             itemBuilder: (_, index) {
-              print("Item builded");
               Schedule schedule = _scheduleController.scheduleList[index];
-              print(schedule.toJson());
-              return Container(
-                child: Text('Schedule'),
-              );
+              print(schedule.day);
+              if (schedule.day == 'Monday') {
+                return AnimationConfiguration.staggeredList(
+                  position: index,
+                  child: SlideAnimation(
+                    child: FadeInAnimation(
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              _showBottomSheet(context, schedule);
+                            },
+                            child: ScheduleTile(schedule),
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              } else {
+                return Container();
+              }
             },
           );
         },

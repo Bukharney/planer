@@ -342,7 +342,7 @@ class _AddSheduleViewState extends State<AddSheduleView> {
           height: 12,
         ),
         Wrap(
-            children: List<Widget>.generate(3, (int index) {
+            children: List<Widget>.generate(6, (int index) {
           return GestureDetector(
             onTap: () {
               setState(() {
@@ -371,32 +371,30 @@ class _AddSheduleViewState extends State<AddSheduleView> {
 
   _addScheduleToDb() async {
     try {
-      int value = await _scheduleController.addSchedule(
+      int id = await _scheduleController.addSchedule(
         schedule: Schedule(
-          title: _subjectController.text.toString(),
-          note: _detaillController.text.toString(),
-          date: DateFormat.yMd().format(_selectedDate),
+          subject: _subjectController.text.toString(),
+          detail: _detaillController.text.toString(),
+          day: _selectedRepeat,
           startTime: _startTime,
           endTime: _endTime,
           color: _selectedColor,
-          repeat: _selectedRepeat,
-          reminde: _selectedRemind,
-          isCompleted: 0,
+          remind: _selectedRemind,
         ),
       );
-      _setNoltification(value);
-      print("my id is $value");
+      _setNoltification(id);
+      print("my id is $id");
     } catch (e) {
       print(e);
     }
   }
 
-  _setNoltification(int value) async {
+  _setNoltification(int id) async {
     DateTime time = DateFormat.jm().parse(_startTime.toString());
     await NotificationService().zonedScheduleNotification(
       title: _subjectController.text.toString(),
       body: _detaillController.text.toString(),
-      id: value,
+      id: id,
       year: _selectedDate.year,
       month: _selectedDate.month,
       day: _selectedDate.day,

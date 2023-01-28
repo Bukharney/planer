@@ -4,21 +4,21 @@ import '../models/data.dart';
 class TaskDBHelper {
   static Database? _db;
   static const int _version = 1;
-  static const String _tableName = 'taskDb';
+  static const String _tableName = 'task1Db';
 
   static Future<void> intiDb() async {
     if (_db != null) {
       return;
     }
     try {
-      String path = '${await getDatabasesPath()}tasksDb.db';
+      String path = '${await getDatabasesPath()}tasks1Db.db';
       _db = await openDatabase(
         path,
         version: _version,
         onCreate: (db, version) {
           print("create a new database");
           db.execute(
-              "CREATE TABLE $_tableName (id INTEGER PRIMARY KEY AUTOINCREMENT, title SRTING, note STRING, isCompleted INTEGER, date STRING, startTime STRING, endTime STRING, color INTEGER, reminde INTEGER, repeat STRING)");
+              "CREATE TABLE $_tableName (id INTEGER PRIMARY KEY AUTOINCREMENT, title SRTING, note STRING, isCompleted INTEGER, date STRING, startTime STRING, endTime STRING, color INTEGER, remind INTEGER, repeat STRING)");
         },
       );
     } catch (e) {

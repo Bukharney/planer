@@ -4,21 +4,21 @@ import '../models/data.dart';
 class ScheduleDBHelper {
   static Database? _db;
   static const int _version = 1;
-  static const String _tableName = 'schedleDb';
+  static const String _tableName = 'schedule1Db';
 
   static Future<void> intiDb() async {
     if (_db != null) {
       return;
     }
     try {
-      String path = '${await getDatabasesPath()}schedleDb.db';
+      String path = '${await getDatabasesPath()}schedule1Db.db';
       _db = await openDatabase(
         path,
         version: _version,
         onCreate: (db, version) {
           print("create a new database");
           db.execute(
-              "CREATE TABLE $_tableName (id INTEGER PRIMARY KEY AUTOINCREMENT, subject SRTING, detail STRING, day STRING, startTime STRING, endTime STRING, color INTEGER, reminde INTEGER)");
+              "CREATE TABLE $_tableName (id INTEGER PRIMARY KEY AUTOINCREMENT, subject SRTING, detail STRING, day STRING, startTime STRING, endTime STRING, color INTEGER, remind INTEGER)");
         },
       );
     } catch (e) {

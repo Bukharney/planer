@@ -7,7 +7,7 @@ class Task {
   String? startTime;
   String? endTime;
   int? color;
-  int? reminde;
+  int? remind;
   String? repeat;
 
   Task({
@@ -19,7 +19,7 @@ class Task {
     this.startTime,
     this.endTime,
     this.color,
-    this.reminde,
+    this.remind,
     this.repeat,
   });
 
@@ -32,7 +32,7 @@ class Task {
     startTime = json['startTime'];
     endTime = json['endTime'];
     color = json['color'];
-    reminde = json['reminde'];
+    remind = json['reminde'];
     repeat = json['repeat'];
   }
 
@@ -46,7 +46,7 @@ class Task {
     data['startTime'] = startTime;
     data['endTime'] = endTime;
     data['color'] = color;
-    data['reminde'] = reminde;
+    data['remind'] = remind;
     data['repeat'] = repeat;
     return data;
   }
@@ -54,54 +54,48 @@ class Task {
 
 class Schedule {
   int? id;
-  String? title;
-  String? note;
+  String? subject;
+  String? detail;
   int? isCompleted;
-  String? date;
+  String? day;
   String? startTime;
   String? endTime;
   int? color;
-  int? reminde;
-  String? repeat;
+  int? remind;
 
   Schedule({
     this.id,
-    this.title,
-    this.note,
+    this.subject,
+    this.detail,
     this.isCompleted,
-    this.date,
+    this.day,
     this.startTime,
     this.endTime,
     this.color,
-    this.reminde,
-    this.repeat,
+    this.remind,
   });
 
   Schedule.fromJson(Map<String, dynamic> json) {
     id = json['id'];
-    title = json['title'];
-    note = json['note'];
-    isCompleted = json['isCompleted'];
-    date = json['date'];
+    subject = json['subject'];
+    detail = json['detail'];
+    day = json['day'];
     startTime = json['startTime'];
     endTime = json['endTime'];
     color = json['color'];
-    reminde = json['reminde'];
-    repeat = json['repeat'];
+    remind = json['reminde'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['id'] = id;
-    data['title'] = title;
-    data['note'] = note;
-    data['isCompleted'] = isCompleted;
-    data['date'] = date;
+    data['subject'] = subject;
+    data['detail'] = detail;
+    data['day'] = day;
     data['startTime'] = startTime;
     data['endTime'] = endTime;
     data['color'] = color;
-    data['reminde'] = reminde;
-    data['repeat'] = repeat;
+    data['remind'] = remind;
     return data;
   }
 }
