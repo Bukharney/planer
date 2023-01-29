@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import '../theme.dart';
 
 class MyButton extends StatelessWidget {
-  final String label;
-  final Function()? onTap;
   const MyButton({super.key, required this.label, required this.onTap});
+
+  final Function()? onTap;
+  final String label;
 
   @override
   Widget build(BuildContext context) {

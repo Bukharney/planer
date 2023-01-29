@@ -4,8 +4,9 @@ import 'package:get/get.dart';
 import 'theme.dart';
 
 class NotifiedView extends StatelessWidget {
-  final String? label;
   const NotifiedView({super.key, required this.label});
+
+  final String? label;
 
   @override
   Widget build(BuildContext context) {

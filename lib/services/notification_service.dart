@@ -31,18 +31,6 @@ class NotificationService {
     );
   }
 
-  _notificationDetails() {
-    return const NotificationDetails(
-      android: AndroidNotificationDetails(
-        'channel id',
-        'channel name',
-        importance: Importance.max,
-        priority: Priority.high,
-        playSound: true,
-      ),
-    );
-  }
-
   Future showNotification({
     int id = 0,
     String? title,
@@ -86,6 +74,18 @@ class NotificationService {
   Future cancelNotification(int id) async {
     await _notificationsPlugin.cancel(id);
     print('Notification cancelled');
+  }
+
+  _notificationDetails() {
+    return const NotificationDetails(
+      android: AndroidNotificationDetails(
+        'channel id',
+        'channel name',
+        importance: Importance.max,
+        priority: Priority.high,
+        playSound: true,
+      ),
+    );
   }
 
   Future<void> _configureLocalTimeZone() async {

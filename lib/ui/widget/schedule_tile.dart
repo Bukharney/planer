@@ -4,8 +4,13 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../models/data.dart';
 
 class ScheduleTile extends StatelessWidget {
-  final Schedule? schedule;
   const ScheduleTile(this.schedule, {super.key});
+
+  final Schedule? schedule;
+
+  _getBGClr(int no) {
+    return Colors.primaries[no];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,9 +91,5 @@ class ScheduleTile extends StatelessWidget {
         ]),
       ),
     );
-  }
-
-  _getBGClr(int no) {
-    return Colors.primaries[no];
   }
 }

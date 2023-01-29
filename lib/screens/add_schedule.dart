@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:planer/services/notification_service.dart';
+import '../Db/DBHelper.dart';
 import '../controllers/data_controller.dart';
 import '../models/data.dart';
 import '../ui/theme.dart';
@@ -16,17 +17,6 @@ class AddSheduleView extends StatefulWidget {
 }
 
 class _AddSheduleViewState extends State<AddSheduleView> {
-  final ScheduleController _scheduleController = Get.put(ScheduleController());
-  final TextEditingController _subjectController = TextEditingController();
-  final TextEditingController _detaillController = TextEditingController();
-  DateTime _selectedDate = DateTime.now();
-  TimeOfDay _selectedTime = const TimeOfDay(hour: 8, minute: 30);
-  TimeOfDay _isStartTime = const TimeOfDay(hour: 8, minute: 30);
-  String _startTime = "8:30 AM";
-  String _endTime = "12:30 PM";
-  int _selectedRemind = 5;
-  List<int> remindList = [5, 10, 15, 20, 25, 30];
-  String _selectedRepeat = "Monday";
   List<String> dayList = [
     "Monday",
     "Tuesday",
@@ -36,12 +26,200 @@ class _AddSheduleViewState extends State<AddSheduleView> {
     "Saturday",
     "Sunday"
   ];
+
+  List<int> remindList = [5, 10, 15, 20, 25, 30];
+
+  final TextEditingController _detaillController = TextEditingController();
+  String _endTime = "12:30 PM";
+  TimeOfDay _isStartTime = const TimeOfDay(hour: 8, minute: 30);
+  final ScheduleController _scheduleController = Get.put(ScheduleController());
   int _selectedColor = 0;
+  DateTime _selectedDate = DateTime.now();
+  int _selectedRemind = 5;
+  String _selectedRepeat = "Monday";
+  TimeOfDay _selectedTime = const TimeOfDay(hour: 8, minute: 30);
+  String _startTime = "8:30 AM";
+  final TextEditingController _subjectController = TextEditingController();
 
   @override
   void initState() {
     NotificationService().init();
     super.initState();
+  }
+
+  _validate() {
+    if (_subjectController.text.isNotEmpty &&
+        _detaillController.text.isNotEmpty) {
+      _addScheduleToDb();
+      Get.back();
+    } else if (_subjectController.text.isEmpty ||
+        _detaillController.text.isEmpty) {
+      Get.snackbar(
+        "Required",
+        "All fields are required !",
+        snackPosition: SnackPosition.BOTTOM,
+        colorText: Colors.pink,
+        backgroundColor: Colors.white,
+        icon: const Icon(
+          Icons.warning_amber_rounded,
+          color: Colors.red,
+        ),
+      );
+    }
+  }
+
+  _appBar() {
+    return AppBar(
+      elevation: 0,
+      leading: GestureDetector(
+        onTap: () async {
+          Get.back();
+        },
+        child: Icon(
+          Icons.arrow_back_ios,
+          size: 20,
+          color: Get.isDarkMode ? Colors.white : Colors.black,
+        ),
+      ),
+      actions: const [
+        CircleAvatar(
+          backgroundImage: AssetImage("images/profile.png"),
+        ),
+        SizedBox(width: 20),
+      ],
+    );
+  }
+
+  _getTime(bool strn) async {
+    return await showTimePicker(
+      context: context,
+      initialTime: _selectedTime,
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData(
+            colorScheme: Get.isDarkMode
+                ? const ColorScheme.dark()
+                : const ColorScheme.light(
+                    primary: Themes.primaryClr,
+                  ),
+          ),
+          child: child!,
+        );
+      },
+    ).then((value) {
+      if (value != null) {
+        double start = _isStartTime.hour + _isStartTime.minute / 60;
+        double picked = value.hour + value.minute / 60;
+        if (strn) {
+          setState(() {
+            _selectedTime = value;
+          });
+        } else if (!strn && picked > start) {
+          setState(() {
+            _selectedTime = value;
+          });
+        } else {
+          showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: const Text("Error"),
+                content: const Text("End time must be greater than start time"),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Get.back();
+                    },
+                    child: Text(
+                      "OK",
+                      style: TextStyle(
+                        color: Colors.deepPurpleAccent[100],
+                      ),
+                    ),
+                  )
+                ],
+              );
+            },
+          );
+        }
+      }
+    });
+  }
+
+  _colorPallete() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Color",
+          style: titleStyle,
+        ),
+        const SizedBox(
+          height: 12,
+        ),
+        Wrap(
+            children: List<Widget>.generate(6, (int index) {
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedColor = index;
+              });
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(right: 10),
+              child: CircleAvatar(
+                radius: 14,
+                backgroundColor: Colors.primaries[index],
+                child: _selectedColor == index
+                    ? const Icon(
+                        Icons.done,
+                        color: Colors.white,
+                        size: 16,
+                      )
+                    : Container(),
+              ),
+            ),
+          );
+        }))
+      ],
+    );
+  }
+
+  _addScheduleToDb() async {
+    try {
+      int id = await _scheduleController.addSchedule(
+        schedule: Schedule(
+          subject: _subjectController.text.toString(),
+          detail: _detaillController.text.toString(),
+          day: _selectedRepeat,
+          startTime: _startTime,
+          endTime: _endTime,
+          color: _selectedColor,
+          remind: _selectedRemind,
+        ),
+      );
+      _scheduleController.getSchedule();
+      _setNoltification(id);
+      print("my id is $id");
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  _setNoltification(int id) async {
+    DateTime time = DateFormat.jm().parse(_startTime.toString());
+    await NotificationService().zonedScheduleNotification(
+      title: _subjectController.text.toString(),
+      body: _detaillController.text.toString(),
+      id: id,
+      year: _selectedDate.year,
+      month: _selectedDate.month,
+      day: _selectedDate.day,
+      hour: time.hour,
+      minutes: time.minute,
+      repeat: _selectedRepeat,
+      reminder: _selectedRemind,
+    );
   }
 
   @override
@@ -228,180 +406,6 @@ class _AddSheduleViewState extends State<AddSheduleView> {
           ),
         ),
       ),
-    );
-  }
-
-  _validate() {
-    if (_subjectController.text.isNotEmpty &&
-        _detaillController.text.isNotEmpty) {
-      _addScheduleToDb();
-      Get.back();
-    } else if (_subjectController.text.isEmpty ||
-        _detaillController.text.isEmpty) {
-      Get.snackbar(
-        "Required",
-        "All fields are required !",
-        snackPosition: SnackPosition.BOTTOM,
-        colorText: Colors.pink,
-        backgroundColor: Colors.white,
-        icon: const Icon(
-          Icons.warning_amber_rounded,
-          color: Colors.red,
-        ),
-      );
-    }
-  }
-
-  _appBar() {
-    return AppBar(
-      elevation: 0,
-      leading: GestureDetector(
-        onTap: () async {
-          Get.back();
-        },
-        child: Icon(
-          Icons.arrow_back_ios,
-          size: 20,
-          color: Get.isDarkMode ? Colors.white : Colors.black,
-        ),
-      ),
-      actions: const [
-        CircleAvatar(
-          backgroundImage: AssetImage("images/profile.png"),
-        ),
-        SizedBox(width: 20),
-      ],
-    );
-  }
-
-  _getTime(bool strn) async {
-    return await showTimePicker(
-      context: context,
-      initialTime: _selectedTime,
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData(
-            colorScheme: Get.isDarkMode
-                ? const ColorScheme.dark()
-                : const ColorScheme.light(
-                    primary: Themes.primaryClr,
-                  ),
-          ),
-          child: child!,
-        );
-      },
-    ).then((value) {
-      if (value != null) {
-        double start = _isStartTime.hour + _isStartTime.minute / 60;
-        double picked = value.hour + value.minute / 60;
-        if (strn) {
-          setState(() {
-            _selectedTime = value;
-          });
-        } else if (!strn && picked > start) {
-          setState(() {
-            _selectedTime = value;
-          });
-        } else {
-          showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                title: const Text("Error"),
-                content: const Text("End time must be greater than start time"),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Get.back();
-                    },
-                    child: Text(
-                      "OK",
-                      style: TextStyle(
-                        color: Colors.deepPurpleAccent[100],
-                      ),
-                    ),
-                  )
-                ],
-              );
-            },
-          );
-        }
-      }
-    });
-  }
-
-  _colorPallete() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "Color",
-          style: titleStyle,
-        ),
-        const SizedBox(
-          height: 12,
-        ),
-        Wrap(
-            children: List<Widget>.generate(6, (int index) {
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                _selectedColor = index;
-              });
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(right: 10),
-              child: CircleAvatar(
-                radius: 14,
-                backgroundColor: Colors.primaries[index],
-                child: _selectedColor == index
-                    ? const Icon(
-                        Icons.done,
-                        color: Colors.white,
-                        size: 16,
-                      )
-                    : Container(),
-              ),
-            ),
-          );
-        }))
-      ],
-    );
-  }
-
-  _addScheduleToDb() async {
-    try {
-      int id = await _scheduleController.addSchedule(
-        schedule: Schedule(
-          subject: _subjectController.text.toString(),
-          detail: _detaillController.text.toString(),
-          day: _selectedRepeat,
-          startTime: _startTime,
-          endTime: _endTime,
-          color: _selectedColor,
-          remind: _selectedRemind,
-        ),
-      );
-      _setNoltification(id);
-      print("my id is $id");
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  _setNoltification(int id) async {
-    DateTime time = DateFormat.jm().parse(_startTime.toString());
-    await NotificationService().zonedScheduleNotification(
-      title: _subjectController.text.toString(),
-      body: _detaillController.text.toString(),
-      id: id,
-      year: _selectedDate.year,
-      month: _selectedDate.month,
-      day: _selectedDate.day,
-      hour: time.hour,
-      minutes: time.minute,
-      repeat: _selectedRepeat,
-      reminder: _selectedRemind,
     );
   }
 }

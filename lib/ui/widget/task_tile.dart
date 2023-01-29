@@ -4,8 +4,13 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../models/data.dart';
 
 class TaskTile extends StatelessWidget {
-  final Task? task;
   const TaskTile(this.task, {super.key});
+
+  final Task? task;
+
+  _getBGClr(int no) {
+    return Colors.primaries[no];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,9 +91,5 @@ class TaskTile extends StatelessWidget {
         ]),
       ),
     );
-  }
-
-  _getBGClr(int no) {
-    return Colors.primaries[no];
   }
 }

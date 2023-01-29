@@ -4,6 +4,7 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:planer/Db/DBHelper.dart';
 import 'package:planer/screens/add_schedule.dart';
 import 'package:planer/services/notification_service.dart';
 import '../controllers/data_controller.dart';
@@ -23,17 +24,19 @@ class PlansView extends StatefulWidget {
 }
 
 class _PlansViewState extends State<PlansView> {
-  final TaskController _taskController = Get.put(TaskController());
-  final ScheduleController _scheduleController = Get.put(ScheduleController());
-  late DateTime _selectedDate;
+  int click = 0;
   var myFormat = DateFormat('yyyy-MM-dd');
   bool status = true;
 
-  int click = 0;
+  final ScheduleController _scheduleController = Get.put(ScheduleController());
+  late DateTime _selectedDate;
+  final TaskController _taskController = Get.put(TaskController());
 
   @override
   void initState() {
+    DBHelper.readAllTasks();
     _taskController.getTasks();
+    DBHelper.readAllSchedules();
     _scheduleController.getSchedule();
     setState(() {
       status = ThemeService().loadThemeFromBox();
@@ -42,14 +45,280 @@ class _PlansViewState extends State<PlansView> {
     super.initState();
   }
 
+  _appBar() {
+    return AppBar(
+      elevation: 0,
+      leading: GestureDetector(
+        onTap: () {
+          ThemeService().switchTheme();
+          setState(() {
+            status = !Get.isDarkMode;
+          });
+        },
+        child: Icon(status ? Icons.wb_sunny_rounded : Icons.nightlight_rounded,
+            size: 20, color: status ? Colors.white : Colors.black),
+      ),
+      actions: const [
+        CircleAvatar(
+          backgroundImage: AssetImage("images/profile.png"),
+        ),
+        SizedBox(width: 20),
+      ],
+    );
+  }
+
+  _showTasks() {
+    return Expanded(
+      child: Obx(
+        () {
+          return ListView.builder(
+            itemCount: _taskController.taskList.length,
+            itemBuilder: (_, index) {
+              Task task = _taskController.taskList[index];
+              print(task.toJson());
+              DateTime date = DateFormat.yMd().parse(task.date.toString());
+              if (task.repeat == 'Daily') {
+                return AnimationConfiguration.staggeredList(
+                  position: index,
+                  child: SlideAnimation(
+                    child: FadeInAnimation(
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              _showBottomSheet(context, task);
+                            },
+                            child: TaskTile(task),
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              } else if (_selectedDate.difference(date).inDays % 7 == 0 &&
+                  task.repeat == 'Weekly') {
+                return AnimationConfiguration.staggeredList(
+                  position: index,
+                  child: SlideAnimation(
+                    child: FadeInAnimation(
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              _showBottomSheet(context, task);
+                            },
+                            child: TaskTile(task),
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              } else if (date.difference(_selectedDate).inDays == 0 &&
+                  task.repeat == 'Monthly') {
+                return AnimationConfiguration.staggeredList(
+                  position: index,
+                  child: SlideAnimation(
+                    child: FadeInAnimation(
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              _showBottomSheet(context, task);
+                            },
+                            child: TaskTile(task),
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              } else if (date.day == _selectedDate.day &&
+                  task.repeat == 'Never') {
+                return AnimationConfiguration.staggeredList(
+                  position: index,
+                  child: SlideAnimation(
+                    child: FadeInAnimation(
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              _showBottomSheet(context, task);
+                            },
+                            child: TaskTile(task),
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              } else {
+                print('Found nothing');
+                return Container();
+              }
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  _showBottomSheet(BuildContext context, instance) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.only(top: 5),
+        height: instance.isCompleted == 1 || click == 1
+            ? MediaQuery.of(context).size.height * 0.25
+            : MediaQuery.of(context).size.height * 0.35,
+        color: Get.isDarkMode ? Themes.darkGreyClr : Themes.white,
+        child: Column(
+          children: [
+            const SizedBox(
+              height: 5,
+            ),
+            Container(
+              height: 5,
+              width: 120,
+              decoration: BoxDecoration(
+                color: Get.isDarkMode ? Colors.grey[600] : Colors.grey[300],
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            const Spacer(),
+            instance.isCompleted == 1 || click == 1
+                ? Container()
+                : _bottomSheetBotton(
+                    context: context,
+                    label: "Mark as Completed",
+                    onTap: () {
+                      _taskController.updateTask(instance.id!);
+                      NotificationService().cancelNotification(instance.id!);
+                      Get.back();
+                    },
+                    color: Themes.primaryClr,
+                  ),
+            _bottomSheetBotton(
+              context: context,
+              label: "Delete Task",
+              onTap: () {
+                if (instance.runtimeType == Task) {
+                  _taskController.deleteTask(instance);
+                  NotificationService().cancelNotification(instance.id!);
+                  Get.back();
+                } else {
+                  _scheduleController.deleteSchedule(instance);
+                  NotificationService().cancelNotification(instance.id!);
+                  Get.back();
+                }
+              },
+              color: Colors.red[400]!,
+            ),
+            const SizedBox(
+              height: 20,
+            ),
+            _bottomSheetBotton(
+              context: context,
+              label: "Close",
+              onTap: () {
+                Get.back();
+              },
+              color: Colors.white,
+              isClose: true,
+            ),
+            const SizedBox(
+              height: 15,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  _bottomSheetBotton({
+    required String label,
+    required Function()? onTap,
+    required Color color,
+    bool isClose = false,
+    required BuildContext context,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 55,
+        width: MediaQuery.of(context).size.width * 0.9,
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        decoration: BoxDecoration(
+          border: Border.all(
+            width: 2,
+            color: isClose == true
+                ? Get.isDarkMode
+                    ? Colors.grey[600]!
+                    : Colors.grey[200]!
+                : color,
+          ),
+          color: isClose == true ? Colors.white : color,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: isClose
+                ? titleStyle.copyWith(
+                    color: Colors.black,
+                  )
+                : titleStyle.copyWith(
+                    color: Colors.white,
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  _showSchedule() {
+    return Expanded(
+      child: Obx(
+        () {
+          return ListView.builder(
+            itemCount: _scheduleController.scheduleList.length,
+            itemBuilder: (_, index) {
+              Schedule schedule = _scheduleController.scheduleList[index];
+              print(schedule.day);
+              if (schedule.day == DateFormat('EEEE').format(_selectedDate)) {
+                return AnimationConfiguration.staggeredList(
+                  position: index,
+                  child: SlideAnimation(
+                    child: FadeInAnimation(
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              _showBottomSheet(context, schedule);
+                            },
+                            child: ScheduleTile(schedule),
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              } else {
+                return Container();
+              }
+            },
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _appBar(),
       body: Column(
         children: [
-          // _addTaksBar(),
-          // _addDateBar(),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -156,290 +425,6 @@ class _PlansViewState extends State<PlansView> {
           setState(() {
             click = value;
           });
-        },
-      ),
-    );
-  }
-
-  _appBar() {
-    return AppBar(
-      elevation: 0,
-      leading: GestureDetector(
-        onTap: () {
-          ThemeService().switchTheme();
-          setState(() {
-            status = !Get.isDarkMode;
-          });
-        },
-        child: Icon(status ? Icons.wb_sunny_rounded : Icons.nightlight_rounded,
-            size: 20, color: status ? Colors.white : Colors.black),
-      ),
-      actions: const [
-        CircleAvatar(
-          backgroundImage: AssetImage("images/profile.png"),
-        ),
-        SizedBox(width: 20),
-      ],
-    );
-  }
-
-  _addDateBar() {
-    return Container();
-  }
-
-  _addTaksBar() {
-    return Container();
-  }
-
-  _showTasks() {
-    return Expanded(
-      child: Obx(
-        () {
-          return ListView.builder(
-            itemCount: _taskController.taskList.length,
-            itemBuilder: (_, index) {
-              Task task = _taskController.taskList[index];
-              DateTime date = DateFormat.yMd().parse(task.date.toString());
-              if (task.repeat == 'Daily') {
-                return AnimationConfiguration.staggeredList(
-                  position: index,
-                  child: SlideAnimation(
-                    child: FadeInAnimation(
-                      child: Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              _showBottomSheet(context, task);
-                            },
-                            child: TaskTile(task),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              } else if (_selectedDate.difference(date).inDays % 7 == 0 &&
-                  task.repeat == 'Weekly') {
-                return AnimationConfiguration.staggeredList(
-                  position: index,
-                  child: SlideAnimation(
-                    child: FadeInAnimation(
-                      child: Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              _showBottomSheet(context, task);
-                            },
-                            child: TaskTile(task),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              } else if (date.difference(_selectedDate).inDays == 0 &&
-                  task.repeat == 'Monthly') {
-                return AnimationConfiguration.staggeredList(
-                  position: index,
-                  child: SlideAnimation(
-                    child: FadeInAnimation(
-                      child: Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              _showBottomSheet(context, task);
-                            },
-                            child: TaskTile(task),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              } else if (date.day == _selectedDate.day &&
-                  task.repeat == 'Never') {
-                return AnimationConfiguration.staggeredList(
-                  position: index,
-                  child: SlideAnimation(
-                    child: FadeInAnimation(
-                      child: Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              _showBottomSheet(context, task);
-                            },
-                            child: TaskTile(task),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              } else {
-                print('Found nothing');
-                return Container();
-              }
-            },
-          );
-        },
-      ),
-    );
-  }
-
-  _showBottomSheet(BuildContext context, task) {
-    Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.only(top: 5),
-        height: task.isCompleted == 1 || click == 1
-            ? MediaQuery.of(context).size.height * 0.25
-            : MediaQuery.of(context).size.height * 0.35,
-        color: Get.isDarkMode ? Themes.darkGreyClr : Themes.white,
-        child: Column(
-          children: [
-            const SizedBox(
-              height: 5,
-            ),
-            Container(
-              height: 5,
-              width: 120,
-              decoration: BoxDecoration(
-                color: Get.isDarkMode ? Colors.grey[600] : Colors.grey[300],
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            const Spacer(),
-            task.isCompleted == 1 || click == 1
-                ? Container()
-                : _bottomSheetBotton(
-                    context: context,
-                    label: "Mark as Completed",
-                    onTap: () {
-                      _taskController.updateTask(task.id!);
-                      NotificationService().cancelNotification(task.id!);
-                      Get.back();
-                    },
-                    color: Themes.primaryClr,
-                  ),
-            _bottomSheetBotton(
-              context: context,
-              label: "Delete Task",
-              onTap: () {
-                _taskController.deleteTask(task);
-                NotificationService().cancelNotification(task.id!);
-                Get.back();
-              },
-              color: Colors.red[400]!,
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            _bottomSheetBotton(
-              context: context,
-              label: "Close",
-              onTap: () {
-                Get.back();
-              },
-              color: Colors.white,
-              isClose: true,
-            ),
-            const SizedBox(
-              height: 15,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  _bottomSheetBotton({
-    required String label,
-    required Function()? onTap,
-    required Color color,
-    bool isClose = false,
-    required BuildContext context,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 55,
-        width: MediaQuery.of(context).size.width * 0.9,
-        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        decoration: BoxDecoration(
-          border: Border.all(
-            width: 2,
-            color: isClose == true
-                ? Get.isDarkMode
-                    ? Colors.grey[600]!
-                    : Colors.grey[200]!
-                : color,
-          ),
-          color: isClose == true ? Colors.white : color,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: isClose
-                ? titleStyle.copyWith(
-                    color: Colors.black,
-                  )
-                : titleStyle.copyWith(
-                    color: Colors.white,
-                  ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  _showSchedule() {
-    return Expanded(
-      child: Obx(
-        () {
-          return ListView.builder(
-            itemCount: _scheduleController.scheduleList.length,
-            itemBuilder: (_, index) {
-              Schedule schedule = _scheduleController.scheduleList[index];
-              print(schedule.day);
-              if (schedule.day == 'Monday') {
-                return AnimationConfiguration.staggeredList(
-                  position: index,
-                  child: SlideAnimation(
-                    child: FadeInAnimation(
-                      child: Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              _showBottomSheet(context, schedule);
-                            },
-                            child: ScheduleTile(schedule),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              } else {
-                return Container();
-              }
-            },
-          );
-        },
-      ),
-    );
-  }
-
-  _testNoti() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      child: MyButton(
-        label: "test",
-        onTap: () {
-          NotificationService().showNotification(
-            title: "test",
-            body: "test test",
-          );
         },
       ),
     );

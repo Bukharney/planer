@@ -3,10 +3,6 @@ import 'package:get/get.dart';
 import '../theme.dart';
 
 class InputField extends StatelessWidget {
-  final String title;
-  final String hint;
-  final TextEditingController? controller;
-  final Widget? widget;
   const InputField({
     super.key,
     required this.title,
@@ -14,6 +10,11 @@ class InputField extends StatelessWidget {
     this.controller,
     this.widget,
   });
+
+  final TextEditingController? controller;
+  final String hint;
+  final String title;
+  final Widget? widget;
 
   @override
   Widget build(BuildContext context) {
