@@ -75,7 +75,6 @@ class _PlansViewState extends State<PlansView> {
             itemCount: _taskController.taskList.length,
             itemBuilder: (_, index) {
               Task task = _taskController.taskList[index];
-              print(task.toJson());
               DateTime date = DateFormat.yMd().parse(task.date.toString());
               if (task.repeat == 'Daily') {
                 return AnimationConfiguration.staggeredList(
@@ -284,7 +283,6 @@ class _PlansViewState extends State<PlansView> {
             itemCount: _scheduleController.scheduleList.length,
             itemBuilder: (_, index) {
               Schedule schedule = _scheduleController.scheduleList[index];
-              print(schedule.day);
               if (schedule.day == DateFormat('EEEE').format(_selectedDate)) {
                 return AnimationConfiguration.staggeredList(
                   position: index,
@@ -405,7 +403,7 @@ class _PlansViewState extends State<PlansView> {
               },
             ),
           ),
-          click == 0 ? _showTasks() : _showSchedule()
+          click == 0 ? _showTasks() : _showSchedule(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(

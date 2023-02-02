@@ -136,7 +136,9 @@ class _AddTaskViewState extends State<AddTaskView> {
   }
 
   _getDate() {
+    // Call when you want to show the date picker
     return showDatePicker(
+      helpText: 'Select a date',
       context: context,
       initialDate: _selectedDate,
       firstDate: DateTime(2021),
@@ -231,7 +233,7 @@ class _AddTaskViewState extends State<AddTaskView> {
 
   _setNoltification(int value) async {
     DateTime time = DateFormat.jm().parse(_startTime.toString());
-    await NotificationService().zonedScheduleNotification(
+    await NotificationService().zonedScheduleNotificationTask(
       title: _titleController.text.toString(),
       body: _noteController.text.toString(),
       id: value,
@@ -425,6 +427,7 @@ class _AddTaskViewState extends State<AddTaskView> {
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   _colorPallete(),
                   MyButton(
@@ -440,5 +443,14 @@ class _AddTaskViewState extends State<AddTaskView> {
         ),
       ),
     );
+  }
+}
+
+class LoadingIndicatorFb1 extends StatelessWidget {
+  const LoadingIndicatorFb1({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return CircularProgressIndicator();
   }
 }

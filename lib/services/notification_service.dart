@@ -45,7 +45,7 @@ class NotificationService {
     );
   }
 
-  Future zonedScheduleNotification({
+  Future zonedScheduleNotificationTask({
     required int year,
     required int month,
     required int day,
@@ -67,6 +67,29 @@ class NotificationService {
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: _selectReapeat(repeat),
+    );
+    print('Notification scheduled');
+  }
+
+  Future zonedScheduleNotificationSchedule({
+    required int day,
+    required int hour,
+    required int minutes,
+    required int id,
+    required String title,
+    required String body,
+    required int reminder,
+  }) async {
+    await _notificationsPlugin.zonedSchedule(
+      id,
+      title,
+      body,
+      _nextInstanceOfDay(day, hour, minutes - reminder),
+      _notificationDetails(),
+      androidAllowWhileIdle: true,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
     );
     print('Notification scheduled');
   }
@@ -105,6 +128,25 @@ class NotificationService {
     tz.TZDateTime scheduledDate =
         tz.TZDateTime(tz.local, year, month, day, hour, minutes);
     if (scheduledDate.isBefore(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    }
+    return scheduledDate;
+  }
+
+  tz.TZDateTime _nextInstanceOfDay(
+    int day,
+    int hour,
+    int minutes,
+  ) {
+    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+    tz.TZDateTime scheduledDate = _nextInstanceOfNotification(
+      now.year,
+      now.month,
+      now.day,
+      hour,
+      minutes,
+    );
+    while (scheduledDate.weekday != day) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
     return scheduledDate;

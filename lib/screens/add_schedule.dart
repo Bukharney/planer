@@ -34,7 +34,7 @@ class _AddSheduleViewState extends State<AddSheduleView> {
   TimeOfDay _isStartTime = const TimeOfDay(hour: 8, minute: 30);
   final ScheduleController _scheduleController = Get.put(ScheduleController());
   int _selectedColor = 0;
-  DateTime _selectedDate = DateTime.now();
+  final DateTime _selectedDate = DateTime.now();
   int _selectedRemind = 5;
   String _selectedRepeat = "Monday";
   TimeOfDay _selectedTime = const TimeOfDay(hour: 8, minute: 30);
@@ -206,18 +206,33 @@ class _AddSheduleViewState extends State<AddSheduleView> {
     }
   }
 
+  _dayToint(String day) {
+    if (day == "Monday") {
+      return 1;
+    } else if (day == "Tuesday") {
+      return 2;
+    } else if (day == "Wednesday") {
+      return 3;
+    } else if (day == "Thursday") {
+      return 4;
+    } else if (day == "Friday") {
+      return 5;
+    } else if (day == "Saturday") {
+      return 6;
+    } else if (day == "Sunday") {
+      return 7;
+    }
+  }
+
   _setNoltification(int id) async {
     DateTime time = DateFormat.jm().parse(_startTime.toString());
-    await NotificationService().zonedScheduleNotification(
+    await NotificationService().zonedScheduleNotificationSchedule(
       title: _subjectController.text.toString(),
       body: _detaillController.text.toString(),
       id: id,
-      year: _selectedDate.year,
-      month: _selectedDate.month,
-      day: _selectedDate.day,
+      day: _dayToint(_selectedRepeat),
       hour: time.hour,
       minutes: time.minute,
-      repeat: _selectedRepeat,
       reminder: _selectedRemind,
     );
   }
