@@ -3,7 +3,7 @@
    <application
         android:label="planer"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@drawable/agenda">
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -10,7 +10,7 @@ class NotificationService {
   Future<void> init() async {
     _configureLocalTimeZone();
     AndroidInitializationSettings androidSettings =
-        const AndroidInitializationSettings('@mipmap/ic_launcher');
+        const AndroidInitializationSettings('@drawable/agenda');
 
     var initializationSettingsIOS = DarwinInitializationSettings(
       requestAlertPermission: true,

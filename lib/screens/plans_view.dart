@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:planer/Db/DBHelper.dart';
 import 'package:planer/screens/add_schedule.dart';
+import 'package:planer/screens/profile_view.dart';
 import 'package:planer/services/notification_service.dart';
 import '../controllers/data_controller.dart';
 import '../models/data.dart';
@@ -58,11 +59,15 @@ class _PlansViewState extends State<PlansView> {
         child: Icon(status ? Icons.wb_sunny_rounded : Icons.nightlight_rounded,
             size: 20, color: status ? Colors.white : Colors.black),
       ),
-      actions: const [
-        CircleAvatar(
-          backgroundImage: AssetImage("images/profile.png"),
+      actions: [
+        GestureDetector(
+          child: Icon(status ? Icons.person : Icons.person,
+              size: 30, color: status ? Colors.white : Colors.black),
+          onTap: () async {
+            await Get.to(() => const ProfileView());
+          },
         ),
-        SizedBox(width: 20),
+        const SizedBox(width: 20),
       ],
     );
   }
